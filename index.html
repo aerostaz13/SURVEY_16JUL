@@ -536,7 +536,7 @@ header img {
         </label>
       </div>
       <div class="wave-group">
-        <input type="email" class="input" name="email" required>
+        <input type="email" class="input" name="_replyto" required>
         <span class="bar"></span>
         <label class="label">
           <span class="label-char" style="--index:0">e</span>
@@ -869,7 +869,7 @@ header img {
         payload.set("society", form.society.value);
         payload.set("country", form.country.value);
         payload.set("ville", form.ville.value);
-        payload.set("email", form.email.value);
+        payload.set("_replyto", form._replyto.value);
         payload.set("whatsapp", form.whatsapp.value);
         payload.set("products",   JSON.stringify(productsData));
         payload.set("_next",      "https://aerostaz13.github.io/thank-you/thank_you.html");
