@@ -480,6 +480,15 @@ header img {
   margin-right: 0.3em;
 }
 
+/* in your <style> block */
+.new-icon {
+  width: 35px;
+  height: 35px;
+  object-fit: contain;
+  margin-right: 0.6em;
+}
+
+
 
 
 
@@ -502,11 +511,11 @@ header img {
   <form id="survey-form" style="margin-top: 20px;" action="https://formspree.io/f/xwpbokkq" method="POST">
     <p class="form-description">
       Chers partenaires,<br><br>
-      <strong>Afin de mieux anticiper vos besoins et garantir la disponibilité de nos produits, merci de renseigner vos prévisions de commandes annuelles.</strong> Vous pouvez indiquer un volume global ou, pour les produits à forte saisonnalité, détailler vos besoins trimestre par trimestre en cochant la case « Décomposer par trimestre ».<br><br>
-      Chaque quantité annuelle ou mensuelle se convertit automatiquement en nombre de cartons (colonne de droite). Les valeurs non entières signalent un besoin partiel : n’hésitez pas à ajuster vos prévisions pour obtenir un nombre de cartons entier.<br><br>
+      <strong>Afin de mieux anticiper vos besoins et garantir la disponibilité de nos produits, merci de renseigner vos prévisions de commandes annuelles.</strong> Vous pouvez indiquer un volume global ou, pour les produits à forte saisonnalité, détailler vos besoins par trimestre en cochant la case « Décomposer par trimestre ».<br><br>
+      Chaque quantité annuelle ou mensuelle se convertit automatiquement en nombre de cartons (colonne de droite). Les valeurs non entières signalent un besoin partiel : n’hésitez pas à ajuster vos prévisions pour obtenir un nombre de cartons entiers.<br><br>
       Toutes les quantités saisies sont exprimées en UNITÉS DE BASE (bolus, flacons, sachets…).<br><br>
-      <strong>Le stock actuel, renseigné dans la colonne « Stock actuel », reflète vos réserves disponibles à ce jour : il nous permet d’ajuster notre production pour éviter ruptures et surstocks, et ainsi garantir une continuité optimale de vos approvisionnements.</strong><br><br>
-      Une fois tous les champs complétés, cliquez sur <strong>Envoyer</strong> pour nous transmettre vos estimations. Nous vous remercions de votre collaboration et restons à votre disposition pour toute question. <br><br>
+      <strong>Le stock actuel, renseigné dans la colonne « Stock actuel », reflète vos réserves disponibles à ce jour : il nous permet d’ajuster notre production pour éviter ruptures et surstocks, et de garantir une continuité optimale de vos approvisionnements.</strong><br><br>
+      Une fois tous les champs complétés, cliquez sur <strong>le bouton en bas de la page</strong> pour nous transmettre vos estimations. Nous vous remercions de votre collaboration et restons à votre disposition pour toute question. <br><br>
       Pour plus d'informations,
       <a href="https://www.lobs.fr/" target="_blank" rel="noopener">
         veuillez vous rendre ici.
@@ -756,6 +765,15 @@ header img {
     
     const nameSpan = row.querySelector(".product-name");
 
+    if (["LOBAX_1C","LOBAX_5C","LOBAX_5L","LOBAX_RPC"].includes(prod.ID)) {
+      const td = nameSpan.parentNode;              // the <td> wrapping the span
+      const newImg = document.createElement("img");
+      newImg.src       = "picture/new.png";
+      newImg.alt       = "Nouveau";
+      newImg.className = "new-icon";
+      td.insertBefore(newImg, td.firstChild);      // stick it at the very left
+    }
+
     if (prod.AMM === 1) {
       const ammImg = document.createElement("img");
       ammImg.src       = "picture/AMM.png";
@@ -839,7 +857,7 @@ header img {
           ? monthly.reduce((sum, val) => sum + val, 0)
           : annualVal;
 
-      const perCarton = Number(prod["Qte_par_carton"]);
+      const perCarton = Number(prod["Qte_par_Carton"]);
       const boxes = perCarton > 0
           ? Number((totalQty / perCarton).toFixed(2))
           : 0;
@@ -947,6 +965,17 @@ header img {
         tooltip.style.display = "none";
       });
     });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const headerHeight = document.querySelector('header').offsetHeight;
+      document.querySelectorAll('#product-table thead th').forEach(th => {
+        th.style.position = 'sticky';
+        th.style.top      = headerHeight + 'px';
+        th.style.backgroundColor = 'whitesmoke';
+        th.style.zIndex   = 2;
+      });
+    });
+
 
 
   </script>
