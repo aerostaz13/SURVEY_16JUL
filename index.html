@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.emailjs.com/sdk/2.3.2/email.min.js"></script>
+  <script type="text/javascript" src="https://cdn.emailjs.com/dist/email.min.js"></script>
   <script>
     (function(){
       emailjs.init('MeBHBDCBqY5lMTJK7');
@@ -536,7 +536,7 @@ header img {
         </label>
       </div>
       <div class="wave-group">
-        <input type="email" class="input" name="email" required>
+        <input type="email" class="input" name="_replyto" required>
         <span class="bar"></span>
         <label class="label">
           <span class="label-char" style="--index:0">e</span>
@@ -855,7 +855,7 @@ header img {
         'service_j5t0gl8',      // ← from your EmailJS dashboard
         'template_rxtdtfa',     // ← from your EmailJS dashboard
         {
-          to_email: form.email.value,
+          to_email: form._replyto.value,
           clientName: form.clientName.value,
           forecastJSON: JSON.stringify(productsData, null, 2)
         }
@@ -869,7 +869,7 @@ header img {
         payload.set("society", form.society.value);
         payload.set("country", form.country.value);
         payload.set("ville", form.ville.value);
-        payload.set("email", form.email.value);
+        payload.set("_replyto", form._replyto.value);
         payload.set("whatsapp", form.whatsapp.value);
         payload.set("products",   JSON.stringify(productsData));
         payload.set("_next",      "https://aerostaz13.github.io/thank-you/thank_you.html");
