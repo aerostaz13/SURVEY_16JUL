@@ -838,7 +838,7 @@ header img {
           ? monthly.reduce((sum, val) => sum + val, 0)
           : annualVal;
 
-      const perCarton = Number(prod["Quantité par carton"]);
+      const perCarton = Number(prod["Qte_par_carton"]);
       const boxes = perCarton > 0
           ? Number((totalQty / perCarton).toFixed(2))
           : 0;
