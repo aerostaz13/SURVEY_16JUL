@@ -601,7 +601,7 @@ header img {
 
     <div class="legend">
       <div class="legend-item amm">
-        <img src="picture/AMM.PNG" alt="AMM" class="legend-icon">
+        <img src="picture/AMM.png" alt="AMM" class="legend-icon">
         AMM en UEMOA
       </div>
       <div class="legend-item api">
@@ -757,7 +757,7 @@ header img {
 
     if (prod.AMM === 1) {
       const ammImg = document.createElement("img");
-      ammImg.src       = "picture/AMM.PNG";
+      ammImg.src       = "picture/AMM.png";
       ammImg.alt       = "AMM";
       ammImg.className = "amm-icon";
       // insert at very start of the span, before any text or animal icons
@@ -879,6 +879,9 @@ header img {
         }
       )
       .then(() => {
+          const actual = produits.map((_, i) =>
+            Number(form[`actual_${i}`].value) || 0
+          );
 
 
         const payload = new FormData();
