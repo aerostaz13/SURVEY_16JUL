@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.emailjs.com/sdk/2.3.2/email.min.js"></script>
+  <script>
+    (function(){
+      emailjs.init('MeBHBDCBqY5lMTJK7');
+    })();
+  </script>
+  <title>Prévisions de Commande</title>
+  <style>
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; background-color: whitesmoke; }
+    .incomplete-box { background-color: orange; }
+    .monthly-input { display: none; }
+  
+  body, input, button, label, table {
+    font-family: 'Inter', sans-serif; /* or Rubik, Nunito, etc. */
+  }
+  
+  body{
+    background-color: #D6EFFF;
+  }
+  
+  input[type="text"],
+  input[type="number"],
+  .input {
+    background-color: #ffffff;
+  }
+
+header {
+  position: sticky;
+  top: 0; left: 0; right: 0;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+    /* ← first column (H1) can go down to zero, second auto-sizes to logo */
+  align-items: center;
+  padding: 20px;
+  background: #D6EFFF;
+  z-index: 1000;
+  margin: 0;
+  border-bottom: 2px solid #000;
+}
+
+/* 1) Let the H1 shrink & wrap */
+header h1 {
+  grid-column: 1;
+  margin: 0 auto;
+  /* allow it to break and not force overflow */
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  /* critical for grid children: permit the column to shrink */
+  min-width: 0;
+  text-align: center;
+}
+
+/* 2) Let the logo scale */
+header img {
+  grid-column: 2;
+  justify-self: end;
+  /* shrink as needed */
+  max-width: 20vw;    /* at most 20% of viewport width */
+  max-height: 60px;   /* cap height */
+  width: auto;
+  height: auto;
+}
+
+/* 3) At small widths, stack them vertically */
+@media (max-width: 600px) {
+  header {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    text-align: center;
+  }
+  header img {
+    grid-row: 1;
+    justify-self: center;
+    margin-bottom: 10px;
+  }
+  header h1 {
+    grid-row: 2;
+    font-size: 2rem;  /* shrink text if you like */
+  }
+}
+
+
+
+
+
+  .wave-group {
+    position: relative;
+    margin-bottom: 30px;
+    margin: 20px;
+  }
+
+  .wave-group .input {
+    font-size: 16px;
+    padding: 10px 10px 10px 5px;
+    display: block;
+    width: 200px;
+    border: none;
+    border-bottom: 1px solid #515151;
+    background: #EBEBFF;
+  }
+
+  .wave-group .input:focus {
+    outline: none;
+  }
+
+  .wave-group .label {
+    color: #999;
+    font-size: 18px;
+    font-weight: normal;
+    position: absolute;
+    pointer-events: none;
+    left: 5px;
+    top: 10px;
+    display: flex;
+  }
+
+  .wave-group .label-char {
+    transition: 0.2s ease all;
+    transition-delay: calc(var(--index) * .05s);
+  }
+
+  .wave-group .input:focus ~ label .label-char,
+  .wave-group .input:valid ~ label .label-char {
+    transform: translateY(-20px);
+    font-size: 14px;
+    color: #5264AE;
+  }
+
+  .wave-group .bar {
+    position: relative;
+    display: block;
+    width: 200px;
+  }
+
+  .wave-group .bar:before, .wave-group .bar:after {
+    content: '';
+    height: 2px;
+    width: 0;
+    bottom: 1px;
+    position: absolute;
+    background: #5264AE;
+    transition: 0.2s ease all;
+    -moz-transition: 0.2s ease all;
+    -webkit-transition: 0.2s ease all;
+  }
+
+  .wave-group .bar:before {
+    left: 50%;
+  }
+
+  .wave-group .bar:after {
+    right: 50%;
+  }
+
+  .wave-group .input:focus ~ .bar:before,
+  .wave-group .input:focus ~ .bar:after {
+    width: 50%;
+  }
+
+  .custom-checkbox {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    font-size: 16px;
+    color: #333;
+    transition: color 0.3s;
+  }
+
+  .custom-checkbox input[type="checkbox"] {
+    display: none;
+  }
+
+  .custom-checkbox .checkmark {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #333;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    transition: background-color 0.3s, border-color 0.3s, transform 0.3s;
+    transform-style: preserve-3d;
+  }
+
+  .custom-checkbox .checkmark::before {
+    content: "\2713";
+    font-size: 16px;
+    color: transparent;
+    transition: color 0.3s, transform 0.3s;
+  }
+
+  .custom-checkbox input[type="checkbox"]:checked + .checkmark {
+    background-color: #333;
+    border-color: #333;
+    transform: scale(1.1) rotateZ(360deg) rotateY(360deg);
+  }
+
+  .custom-checkbox input[type="checkbox"]:checked + .checkmark::before {
+    color: #fff;
+  }
+
+  .custom-checkbox:hover {
+    color: #666;
+  }
+
+  .custom-checkbox:hover .checkmark {
+    border-color: #666;
+    background-color: #f0f0f0;
+    transform: scale(1.05);
+  }
+
+  .custom-checkbox input[type="checkbox"]:focus + .checkmark {
+    box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.2);
+    outline: none;
+  }
+
+  .custom-checkbox .checkmark,
+  .custom-checkbox input[type="checkbox"]:checked + .checkmark {
+    transition: background-color 1.3s, border-color 1.3s, color 1.3s, transform 0.3s;
+  }
+
+  .input {
+    padding: 10px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    color: #555;
+    outline: none;
+  }
+
+  .input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+
+
+  button {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    color: white;
+    padding: 1em 2em;
+    border: none;
+    border-radius: .6rem;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    width: 15%;
+  }
+
+  button span:not(:nth-child(6)) {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+    transition: .6s ease;
+  }
+
+  button span:nth-child(6) {
+    position: relative;
+  }
+
+  button span:nth-child(1) {
+    transform: translate(-3.3em, -4em);
+  }
+
+  button span:nth-child(2) {
+    transform: translate(-6em, 1.3em);
+  }
+
+  button span:nth-child(3) {
+    transform: translate(-.2em, 1.8em);
+  }
+
+  button span:nth-child(4) {
+    transform: translate(3.5em, 1.4em);
+  }
+
+  button span:nth-child(5) {
+    transform: translate(3.5em, -3.8em);
+  }
+
+  button:hover span:not(:nth-child(6)) {
+    transform: translate(-50%, -50%) scale(4);
+    transition: 1.5s ease;
+  }
+
+  .submit-button {
+  background-color: #28a745; /* green */
+}
+
+.submit-button span:not(:nth-child(6)) {
+  background-color: #218838; /* darker green for effect */
+}
+
+.reset-button {
+  background-color: #dc3545; /* red */
+}
+
+.reset-button span:not(:nth-child(6)) {
+  background-color: #c82333; /* darker red */
+}
+
+
+
+  .form-description {
+    font-size: 1rem;
+    margin-bottom: 1.5em;
+    margin: 20px;
+  }
+
+.form-description a {
+  color: #007bff;
+  text-decoration: underline;
+}
+.form-description a:hover {
+  opacity: 0.8;
+  color: blue
+}
+
+
+  .monthly-input {
+  display: none;
+  gap: 5px;              /* écart entre chaque mois */
+  flex-wrap: wrap;       /* si espace réduit, passe à la ligne */
+}
+
+.month-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.month-box label {
+  margin-bottom: 4px;
+  color: #333;
+}
+
+
+.form-row {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 1200px;
+  margin: 0px;
+}
+
+@media (max-width: 600px) {
+  .form-row { flex-direction: column; }
+}
+
+
+
+
+#image-tooltip {
+  position: absolute;
+  display: none;
+  pointer-events: none;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 999;
+
+  /* max-size constraints */
+  max-width: 300px;
+  max-height: 200px;
+  /* note: no overflow:hidden here, so the image can't be clipped */
+}
+
+#image-tooltip img {
+  display: block;
+  /* scale down to fit the container, but never exceed it */
+  max-width: 100%;
+  max-height: 100%;
+  /* let the browser pick the right width/height to preserve aspect ratio */
+  width: auto;
+  height: auto;
+}
+
+
+/* Base dot style on every product-name */
+.product-name {
+  position: relative;        /* for the ::before dot */
+  padding-left: 1.5em;       /* room for the dot */
+  display: inline-flex;      /* to lay out icons in a row */
+  align-items: center;
+  gap: 0.3em;                /* space between name and icons */
+}
+
+.product-name::before {
+  content: "";
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  border-radius: 50%;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: gray;    /* fallback dot color */
+}
+
+/* override per-Aires dot colors */
+.product-name.aire-api::before  { background-color: #429246 !important; }
+.product-name.aire-ape::before  { background-color: #86247c !important; }
+.product-name.aire-atb::before  { background-color: #bf2722 !important; }
+.product-name.aire-vit::before  { background-color: #f3b146 !important; }
+.product-name.aire-try::before  { background-color: #fadc52 !important; }
+.product-name.aire-vac::before  { background-color: #1d4f87 !important; }
+
+/* animal icon sizing */
+.product-name img.animal-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+
+/* legend container */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5em;
+  align-items: center;
+  margin-bottom: 0.5em;
+  font-size: 0.9em;
+}
+
+/* each legend entry */
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+/* the coloured circle */
+.legend-item .dot {
+  width: 0.8em;
+  height: 0.8em;
+  border-radius: 50%;
+  display: inline-block;
+  background-color: gray; /* fallback */
+}
+
+/* match your dot colours */
+.legend-item.api  .dot { background-color: #429246; }
+.legend-item.ape  .dot { background-color: #86247c; }
+.legend-item.atb  .dot { background-color: #bf2722; }
+.legend-item.vit  .dot { background-color: #f3b146; }
+.legend-item.try  .dot { background-color: #fadc52; }
+.legend-item.vac  .dot { background-color: #1d4f87; }
+
+.legend-item.amm .legend-icon {
+  width: 1.2em;
+  height: auto;
+  vertical-align: middle;
+  margin-right: 0.3em;
+}
+
+
+
+.amm-icon {
+  width: 20px;
+  height: auto;
+  vertical-align: middle;
+  margin-right: 0.3em;
+}
+
+
+
+
+
+
+
+
+
+  
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Planifiez vos commandes LOBS pour une année sans rupture</h1>
+    <a href="https://www.lobs.fr/" target="_blank" rel="noopener">
+      <img src="picture/logo_LOBS.png" alt = "Logo LOBS International Health"> 
+    </a>
+  </header>
+  <form id="survey-form" style="margin-top: 20px;" action="https://formspree.io/f/xwpbokkq" method="POST">
+    <p class="form-description">
+      Chers partenaires,<br><br>
+      <strong>Afin de mieux anticiper vos besoins et garantir la disponibilité de nos produits, merci de renseigner vos prévisions de commandes annuelles.</strong> Vous pouvez indiquer un volume global ou, pour les produits à forte saisonnalité, détailler vos besoins trimestre par trimestre en cochant la case « Décomposer par trimestre ».<br><br>
+      Chaque quantité annuelle ou mensuelle se convertit automatiquement en nombre de cartons (colonne de droite). Les valeurs non entières signalent un besoin partiel : n’hésitez pas à ajuster vos prévisions pour obtenir un nombre de cartons entier.<br><br>
+      Toutes les quantités saisies sont exprimées en UNITÉS DE BASE (bolus, flacons, sachets…).<br><br>
+      Une fois tous les champs complétés, cliquez sur <strong>Envoyer</strong> pour nous transmettre vos estimations. Nous vous remercions de votre collaboration et restons à votre disposition pour toute question. <br><br>
+      Pour plus d'informations,
+      <a href="https://www.lobs.fr/" target="_blank" rel="noopener">
+        veuillez vous rendre ici.
+      </a>
+    </p>
+
+  <div class="form-row">
+      <div class="wave-group">
+        <input type="text" class="input" name="clientSurname" required>
+        <span class="bar"></span>
+        <label class="label">
+          <span class="label-char" style="--index:0">P</span>
+          <span class="label-char" style="--index:1">r</span>
+          <span class="label-char" style="--index:2">é</span>
+          <span class="label-char" style="--index:3">n</span>
+          <span class="label-char" style="--index:4">o</span>
+          <span class="label-char" style="--index:5">m</span>
+        </label>
+      </div>
+      <div class="wave-group">
+        <input type="text" class="input" name="country" required>
+        <span class="bar"></span>
+        <label class="label">
+          <span class="label-char" style="--index:0">P</span>
+          <span class="label-char" style="--index:1">a</span>
+          <span class="label-char" style="--index:2">y</span>
+          <span class="label-char" style="--index:3">s</span>
+        </label>
+      </div>
+      <div class="wave-group">
+        <input type="email" class="input" name="email" required>
+        <span class="bar"></span>
+        <label class="label">
+          <span class="label-char" style="--index:0">e</span>
+          <span class="label-char" style="--index:1">m</span>
+          <span class="label-char" style="--index:2">a</span>
+          <span class="label-char" style="--index:3">i</span>
+          <span class="label-char" style="--index:4">l</span>
+        </label>
+      </div>
+  </div>
+  <div class="form-row">
+    <div class="wave-group">
+      <input type="text" class="input" name="clientName" required>
+      <span class="bar"></span>
+      <label class="label">
+        <span class="label-char" style="--index:0">N</span>
+        <span class="label-char" style="--index:1">o</span>
+        <span class="label-char" style="--index:2">m</span>
+      </label>
+    </div>
+    <div class="wave-group">
+      <input type="text" class="input" name="ville" required>
+      <span class="bar"></span>
+      <label class="label">
+        <span class="label-char" style="--index:0">V</span>
+        <span class="label-char" style="--index:1">i</span>
+        <span class="label-char" style="--index:2">l</span>
+        <span class="label-char" style="--index:3">l</span>
+        <span class="label-char" style="--index:4">e</span>
+      </label>
+    </div>
+
+      <div class="wave-group">
+        <input type="text" class="input" name="whatsapp" required>
+        <span class="bar"></span>
+        <label class="label">
+          <span class="label-char" style="--index:0">W</span>
+          <span class="label-char" style="--index:1">h</span>
+          <span class="label-char" style="--index:2">a</span>
+          <span class="label-char" style="--index:3">t</span>
+          <span class="label-char" style="--index:4">s</span>
+          <span class="label-char" style="--index:5">A</span>
+          <span class="label-char" style="--index:6">p</span>
+          <span class="label-char" style="--index:7">p</span>
+        </label>
+      </div>
+
+      <div class="wave-group">
+        <input type="text" class="input" name="society" required>
+        <span class="bar"></span>
+        <label class="label">
+          <span class="label-char" style="--index:0">S</span>
+          <span class="label-char" style="--index:1">o</span>
+          <span class="label-char" style="--index:2">c</span>
+          <span class="label-char" style="--index:3">i</span>
+          <span class="label-char" style="--index:4">é</span>
+          <span class="label-char" style="--index:5">t</span>
+          <span class="label-char" style="--index:6">é</span>
+        </label>
+      </div>
+  </div>
+
+    <div class="legend">
+      <div class="legend-item amm">
+        <img src="picture/AMM.PNG" alt="AMM" class="legend-icon">
+        AMM en UEMOA
+      </div>
+      <div class="legend-item api">
+        <span class="dot"></span>     
+        <a href="https://www.lobs.fr/categories-produits/antiparasitaires-internes" target="_blank" rel="noopener">
+          ANTIPARASITAIRES INTERNES
+        </a>
+      </div>
+      <div class="legend-item ape">
+        <span class="dot"></span> 
+        <a href="https://www.lobs.fr/categories-produits/antiparasitaires-externes" target="_blank" rel="noopener">
+          ANTIPARASITAIRES EXTERNES
+        </a> 
+      </div>
+      <div class="legend-item atb">
+        <span class="dot"></span> 
+        <a href="https://www.lobs.fr/categories-produits/anti-infectieux-et-assimiles" target="_blank" rel="noopener">
+          ANTI-INFECTIEUX OU ASSIMILÉS
+        </a>
+      </div>
+      <div class="legend-item vit">
+        <span class="dot"></span> 
+        <a href="https://www.lobs.fr/categories-produits/vitamines-mineraux" target="_blank" rel="noopener">
+          VITAMINES & MINÉRAUX
+        </a>
+      </div>
+      <div class="legend-item try">
+        <span class="dot"></span> 
+        <a href="https://www.lobs.fr/categories-produits/trypanocides" target="_blank" rel="noopener">
+          TRYPANOCIDES
+        </a>
+      </div>
+      <div class="legend-item vac">
+        <span class="dot"></span> 
+        <a href="https://www.lobs.fr/categories-produits/vaccins" target="_blank" rel="noopener">
+          VACCINS
+        </a>
+      </div>
+    </div>
+
+    <table id="product-table">
+      <thead>
+        <tr>
+          <th>Produit</th>
+          <th>Quantité annuelle prévue</th>
+          <th>Décomposer par trimestre ?</th>
+          <th>trimestre</th>
+          <th>Cartons</th>
+          <th>Qte par Carton</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <br>
+        <input
+    type="hidden"
+    name="_next"
+    value="https://aerostaz13.github.io/thank-you/thank_you.html"
+    >
+
+    <input
+    type="hidden"
+    name="_captcha"
+    value="false"
+    >
+
+<button type = "submit" class = "submit-button">
+    <span class="circle1"></span>
+    <span class="circle2"></span>
+    <span class="circle3"></span>
+    <span class="circle4"></span>
+    <span class="circle5"></span>
+    <span class="text">Valider ma prévision et garantir ma livraison !</span>
+</button>
+
+ <button type="reset" class = "reset-button">
+    <span class="circle1"></span>
+    <span class="circle2"></span>
+    <span class="circle3"></span>
+    <span class="circle4"></span>
+    <span class="circle5"></span>
+    <span class="text">Effacer les champs</span>
+  </button>
+  </form>
+  <br>
+  <p class = "form-description" style = "color : grey;"><i>Les informations transmises seront utilisées avec la plus grande confidentialité. 
+  Elles représentent une estimation de vos besoins sur une année calendaire mais ne sont pas une confirmation de commande. 
+  LOBS les utilisera pour mieux planifier vos besoins et répondre plus rapidement à vos demandes de produits.</i></p>
+  <br><br><br><br><br><br><br><br><br><br><br><br>
+    <!-- tooltip popup -->
+  <div id="image-tooltip">
+    <img src="" alt="preview">
+  </div>
+
+    
+  
+  <script>
+    const produits = [{"ID":"ALB25V_50","Product":"ALBEN 2500","Presentation":"Seau de","Quantité":"50 boli","Qte_par_Carton":600,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"ALB25B_50","Product":"ALBEN  2500","Presentation":"Seau de","Quantité":"50 boli","Qte_par_Carton":600,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"ALB25V_5C","Product":"ALBEN 2500  vrac","Presentation":"Seau de","Quantité":"500 boli","Qte_par_Carton":1000,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"ALB25BL_50","Product":"ALBEN 2500 BLISTER","Presentation":"Coffret de 5 Boîtes de 10 boli,","Quantité":"50 boli","Qte_par_Carton":500,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"ALB25_B2","Product":"ALBEN 2500 Boîte de 2 boli","Presentation":"Coffret de 50 boîtes de 2 boli,","Quantité":"100 boli","Qte_par_Carton":600,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"ALB30_2K","Product":"ALBEN 300","Presentation":"Seau de","Quantité":"2000 cps","Qte_par_Carton":4000,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"ALB30BL_1C","Product":"ALBEN 300 Blister","Presentation":"Coffret de 5 Boîtes de 20 boli,","Quantité":"100 cps","Qte_par_Carton":2000,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"ALB30_1C","Product":"ALBEN 300","Presentation":"Pot de","Quantité":"100 cps","Qte_par_Carton":4000,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"ALBCI_50","Product":"ALBEN CIBLE","Presentation":"Boîte de 25 pochettes de 2 boli,","Quantité":"50 boli","Qte_par_Carton":1000,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"ALB10_1L","Product":"ALBEN 10%","Presentation":"Flacon de","Quantité":"1  L","Qte_par_Carton":10,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":0},{"ID":"ANTI_1C","Product":"ANTITIC ","Presentation":"Flacon de","Quantité":"100 ml","Qte_par_Carton":100,"Aires":"APE","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"ANTI_250","Product":"ANTITIC ","Presentation":"Flacon de","Quantité":"250 ml","Qte_par_Carton":40,"Aires":"APE","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"ANTI_1L","Product":"ANTITIC ","Presentation":"Flacon de","Quantité":"1  L","Qte_par_Carton":10,"Aires":"APE","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"BIO5_50","Product":"BIOCYCLINE 5%","Presentation":"Flacon de","Quantité":"50 ml","Qte_par_Carton":100,"Aires":"ATB","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"BIO5_1C","Product":"BIOCYCLINE 5%","Presentation":"Flacon de","Quantité":"100 ml","Qte_par_Carton":80,"Aires":"ATB","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"BIO10_50","Product":"BIOCYCLINE 10%","Presentation":"Flacon de","Quantité":"50 ml","Qte_par_Carton":100,"Aires":"ATB","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"BIO10_1C","Product":"BIOCYCLINE 10%","Presentation":"Flacon de","Quantité":"100 ml","Qte_par_Carton":80,"Aires":"ATB","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"BIO20_50","Product":"BIOCYCLINE 20%","Presentation":"Flacon de","Quantité":"50ml","Qte_par_Carton":100,"Aires":"ATB","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"BIO20_1C","Product":"BIOCYCLINE 20%","Presentation":"Flacon de","Quantité":"100ml","Qte_par_Carton":80,"Aires":"ATB","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"DELSE_20","Product":"DELTA LOBS SE ","Presentation":"Flacon de","Quantité":"20ml","Qte_par_Carton":200,"Aires":"APE","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":0},{"ID":"DELSE_1C","Product":"DELTA LOBS SE ","Presentation":"Flacon de","Quantité":"100ml","Qte_par_Carton":100,"Aires":"APE","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":0},{"ID":"DELSE_1L","Product":"DELTA LOBS SE ","Presentation":"Flacon de","Quantité":"1 L","Qte_par_Carton":10,"Aires":"APE","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":0},{"ID":"DELPO_5C","Product":"DELTA LOBS PO ","Presentation":"Flacon double sortie de","Quantité":"500 ml","Qte_par_Carton":20,"Aires":"APE","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"DISTO_1K","Product":"DISTOCUR","Presentation":"Seaux de","Quantité":"1000 boli","Qte_par_Carton":4000,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"DISTO_1C","Product":"DISTOCUR","Presentation":"Pot  de","Quantité":"100 boli","Qte_par_Carton":4000,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"DOXYL_1C","Product":"DOXYLOBS 500","Presentation":"Boîte de sachets de 100g,","Quantité":"25 sachets","Qte_par_Carton":200,"Aires":"ATB","vache":1,"volaille":1,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":0},{"ID":"DOXYL_1K","Product":"DOXYLOBS 500","Presentation":"Pot de","Quantité":"1 Kg","Qte_par_Carton":18,"Aires":"ATB","vache":1,"volaille":1,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":0},{"ID":"FERL_1C","Product":"FERLOBSTRAN B12","Presentation":"Flacon de","Quantité":"100ml","Qte_par_Carton":60,"Aires":"VIT","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":0},{"ID":"IVMEC_10","Product":"IVERMEC ","Presentation":"flacon de","Quantité":"10 ml","Qte_par_Carton":600,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":0,"cheval":0,"porc":0,"Chameaux":1,"Chien":0,"AMM":1},{"ID":"IVMEC_20","Product":"IVERMEC ","Presentation":"flacon de","Quantité":"20 ml","Qte_par_Carton":400,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":0,"cheval":0,"porc":0,"Chameaux":1,"Chien":0,"AMM":1},{"ID":"IVMEC_50","Product":"IVERMEC ","Presentation":"flacon plastique de","Quantité":"50 ml","Qte_par_Carton":100,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":0,"cheval":0,"porc":0,"Chameaux":1,"Chien":0,"AMM":1},{"ID":"IVMEC_1C","Product":"IVERMEC ","Presentation":"flacon plastique de","Quantité":"100 ml","Qte_par_Carton":80,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":0,"cheval":0,"porc":0,"Chameaux":1,"Chien":0,"AMM":1},{"ID":"LEV20_1C","Product":"LEVALOBS 200","Presentation":"Boîte de sachets de 100g,","Quantité":"25 sachets","Qte_par_Carton":200,"Aires":"API","vache":1,"volaille":1,"lapin":0,"mouton":1,"chevre":0,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LEV20_1K","Product":"LEVALOBS 200","Presentation":"Pot de","Quantité":"1kg","Qte_par_Carton":18,"Aires":"API","vache":1,"volaille":1,"lapin":0,"mouton":1,"chevre":0,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBCL_1C","Product":"LOBACALCIUM","Presentation":"Flacon de","Quantité":"100ml","Qte_par_Carton":80,"Aires":"VIT","vache":1,"volaille":1,"lapin":1,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":0,"Chien":1,"AMM":0},{"ID":"LOBAX_1C","Product":"LOBAMAX VOLAILLE","Presentation":"Flacon de","Quantité":"100ml","Qte_par_Carton":80,"Aires":"ATB","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBAX_5C","Product":"LOBAMAX VOLAILLE","Presentation":"Flacon de","Quantité":"500ml","Qte_par_Carton":24,"Aires":"ATB","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBAX_5L","Product":"LOBAMAX VOLAILLE","Presentation":"Flacon de","Quantité":"5L","Qte_par_Carton":4,"Aires":"ATB","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBAX_RPC","Product":"LOBAMAX RPC","Presentation":"Flacon de","Quantité":"500ml","Qte_par_Carton":24,"Aires":"ATB","vache":1,"volaille":1,"lapin":0,"mouton":1,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBLA_CO","Product":"LOBAMIN LAYERS","Presentation":"Boîte de","Quantité":"25 sachets de 150g et 5 sachets 15g","Qte_par_Carton":120,"Aires":"VIT","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":0},{"ID":"LOBLA_1K","Product":"LOBAMIN LAYERS","Presentation":"Seau de","Quantité":"1kg","Qte_par_Carton":18,"Aires":"VIT","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":0},{"ID":"LPHEN_1C","Product":"LOBAPHEN","Presentation":"Pot  de","Quantité":"100 boli","Qte_par_Carton":400,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":0},{"ID":"LOBAINJ_1C","Product":"LOBAVIT INJECTABLE","Presentation":"Flacon de","Quantité":"100ml","Qte_par_Carton":80,"Aires":"VIT","vache":1,"volaille":1,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":1,"Chien":1,"AMM":0},{"ID":"LOBA+_15","Product":"LOBAVIT PLUS 15g","Presentation":"Boîte de 100","Quantité":"sachet de 15g","Qte_par_Carton":1000,"Aires":"VIT","vache":1,"volaille":1,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":1,"Chien":0,"AMM":1},{"ID":"LOBAV_1C","Product":"LOBAVIT VOLAILLE","Presentation":"Boîte de","Quantité":"25 sachets de 100 gr","Qte_par_Carton":200,"Aires":"VIT","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBAV_1K","Product":"LOBAVIT VOLAILLE","Presentation":"Seau de","Quantité":"1kg","Qte_par_Carton":18,"Aires":"VIT","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBAZ_GD","Product":"LOBAZEN","Presentation":"Boîte de 10 sachets de","Quantité":"23,6 g","Qte_par_Carton":500,"Aires":"TRY","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBAZ_PT","Product":"LOBAZEN","Presentation":"Boîte de 10 sachets de","Quantité":"2,36 g","Qte_par_Carton":2000,"Aires":"TRY","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBZ+_GD","Product":"LOBAZEN PLUS","Presentation":"Boîte de 10 sachets de","Quantité":"23,9 g","Qte_par_Carton":500,"Aires":"TRY","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBZ+_PT","Product":"LOBAZEN PLUS","Presentation":"Boîte de 10 sachets de","Quantité":"2,39 g","Qte_par_Carton":2000,"Aires":"TRY","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBIC25_1C","Product":"LOBICOX","Presentation":"Boîte de","Quantité":"25 sachets de 100 gr","Qte_par_Carton":100,"Aires":"API","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBIC_1K","Product":"LOBICOX","Presentation":"Boîte de","Quantité":"10 sachets de 100 gr","Qte_par_Carton":100,"Aires":"API","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBIC15_10","Product":"LOBICOX","Presentation":"Boîte de","Quantité":"100 sachets de 15 gr","Qte_par_Carton":1000,"Aires":"API","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBIC10_1C","Product":"LOBICOX","Presentation":"Seaux de","Quantité":"1kg","Qte_par_Carton":18,"Aires":"API","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBID_SA","Product":"LOBIDIUM","Presentation":"Boîte de 10 sachets de","Quantité":"1g","Qte_par_Carton":2000,"Aires":"TRY","vache":1,"volaille":1,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":0,"Chameaux":1,"Chien":1,"AMM":1},{"ID":"LOBID+_SA","Product":"LOBIDIUM PLUS 125mg","Presentation":"Boîte de 10 sachets de","Quantité":"1g","Qte_par_Carton":2000,"Aires":"TRY","vache":1,"volaille":1,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":0,"Chameaux":1,"Chien":1,"AMM":1},{"ID":"LOBIF_CO","Product":"LOBIFUGE VOLAILLE","Presentation":"Coffret de 10 boîtes de","Quantité":"100 cps","Qte_par_Carton":100,"Aires":"API","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LVACN_40","Product":"LOBIVAC NEW","Presentation":"flacon de 40 doses,","Quantité":"20ml","Qte_par_Carton":550,"Aires":"VAC","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LVACN_1C","Product":"LOBIVAC NEW","Presentation":"flacon de 100 doses,","Quantité":"50ml","Qte_par_Carton":232,"Aires":"VAC","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LVACN_1K","Product":"LOBIVAC NEW","Presentation":"flacon de 1000 doses,","Quantité":"500ml","Qte_par_Carton":30,"Aires":"VAC","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LIVEAIN_1K","Product":"LOBIVAC AI NEW ","Presentation":"flacon de 1000 doses,","Quantité":"250ml","Qte_par_Carton":60,"Aires":"VAC","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LIVEAIN_2K","Product":"LOBIVAC AI NEW ","Presentation":"flacon de 2000 doses,","Quantité":"500ml","Qte_par_Carton":30,"Aires":"VAC","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBZL1_1C","Product":"LOBIZOL 1000","Presentation":"Pot  de","Quantité":"100 boli","Qte_par_Carton":400,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBZL3_25K","Product":"LOBIZOL 300","Presentation":"Seaux de","Quantité":"2500 boli","Qte_par_Carton":5000,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOBZL3_1C","Product":"LOBIZOL 300","Presentation":"Pot  de","Quantité":"100 boli","Qte_par_Carton":4000,"Aires":"API","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"LOSPRY_21","Product":"LOBSPRAY","Presentation":"Spray de","Quantité":"210ml","Qte_par_Carton":24,"Aires":"ATB","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":0,"Chien":1,"AMM":0},{"ID":"LOBUMX_60","Product":"LOBUVIT MAXI","Presentation":"Boîte de","Quantité":"60 boli","Qte_par_Carton":960,"Aires":"VIT","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":1,"Chien":0,"AMM":1},{"ID":"LOBUMN_1C","Product":"LOBUVIT MINI","Presentation":"Boîte de","Quantité":"100 boli","Qte_par_Carton":2000,"Aires":"VIT","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":1,"Chien":0,"AMM":1},{"ID":"MAXICO_1C","Product":"MAXICOVIT","Presentation":"Coffret de 10 boîtes de","Quantité":"100 cps","Qte_par_Carton":1000,"Aires":"ATB","vache":0,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":0},{"ID":"MAXIL25_1C","Product":"MAXI LAYER ","Presentation":"Boîte de","Quantité":"25 sachets de 100 gr","Qte_par_Carton":200,"Aires":"ATB","vache":1,"volaille":1,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"MAXIL100_10","Product":"MAXI LAYER ","Presentation":"Boîte de","Quantité":"10 sachets de 100 gr","Qte_par_Carton":100,"Aires":"ATB","vache":1,"volaille":1,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"MAXIL100_15","Product":"MAXI LAYER ","Presentation":"Boîte de","Quantité":"100 sachets de 15 gr","Qte_par_Carton":1000,"Aires":"ATB","vache":1,"volaille":1,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"MAXIL_1K","Product":"MAXI LAYER ","Presentation":"Seau de","Quantité":"1kg","Qte_par_Carton":18,"Aires":"ATB","vache":1,"volaille":1,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"OXY50_25","Product":"OXYMEG 50","Presentation":"Boîte de","Quantité":"25 sachets de 100 gr","Qte_par_Carton":100,"Aires":"ATB","vache":0,"volaille":1,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"OXY50_1C","Product":"OXYMEG 50","Presentation":"Boîte de","Quantité":"10 sachets de 100 gr","Qte_par_Carton":100,"Aires":"ATB","vache":0,"volaille":1,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"OXY50_10","Product":"OXYMEG 50","Presentation":"Boîte de","Quantité":"100 sachets de 15 gr","Qte_par_Carton":1000,"Aires":"ATB","vache":0,"volaille":1,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"OXY50_1K","Product":"OXYMEG 50","Presentation":"Seau de","Quantité":"1 kg","Qte_par_Carton":18,"Aires":"ATB","vache":0,"volaille":1,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"PENIF_4M","Product":"PENI FORTE 4 MEGA","Presentation":" Boîte de","Quantité":"10 flacons","Qte_par_Carton":6000,"Aires":"ATB","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":0,"Chien":0,"AMM":0},{"ID":"STRE_1C","Product":"STREPEN MAXI ","Presentation":"Flacon de","Quantité":"100 ml","Qte_par_Carton":80,"Aires":"ATB","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"SULFA33_50","Product":"SULFA LOBS 33","Presentation":"Flacon de","Quantité":"50ml","Qte_par_Carton":100,"Aires":"ATB","vache":1,"volaille":1,"lapin":1,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":0,"Chien":0,"AMM":0},{"ID":"SULFA33_1C","Product":"SULFA LOBS 33","Presentation":"Flacon de","Quantité":"100ml","Qte_par_Carton":80,"Aires":"ATB","vache":1,"volaille":1,"lapin":1,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":0,"Chien":0,"AMM":0},{"ID":"SULFA33_5C","Product":"SULFA LOBS 33","Presentation":"Flacon de","Quantité":"500ml","Qte_par_Carton":25,"Aires":"ATB","vache":1,"volaille":1,"lapin":1,"mouton":1,"chevre":1,"cheval":1,"porc":1,"Chameaux":0,"Chien":0,"AMM":0},{"ID":"TYDOX_1C25","Product":"TYL-DOX ","Presentation":"Boîte de","Quantité":"25 sachets de 100 gr","Qte_par_Carton":100,"Aires":"ATB","vache":1,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"TYDOX_1C10","Product":"TYL-DOX ","Presentation":"Boîte de","Quantité":"10 sachets de 100 gr","Qte_par_Carton":100,"Aires":"ATB","vache":1,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"TYDOX_10","Product":"TYL-DOX ","Presentation":"Boîte de","Quantité":"100 sachets de 15 gr","Qte_par_Carton":1000,"Aires":"ATB","vache":1,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"TYDOX_1K","Product":"TYL-DOX ","Presentation":"Seau de","Quantité":"1Kg","Qte_par_Carton":18,"Aires":"ATB","vache":1,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"TYDOX_5K","Product":"TYL-DOX ","Presentation":"Seau de","Quantité":"5kg","Qte_par_Carton":4,"Aires":"ATB","vache":1,"volaille":1,"lapin":0,"mouton":0,"chevre":0,"cheval":0,"porc":0,"Chameaux":0,"Chien":0,"AMM":1},{"ID":"TYLOF_50","Product":"TYLO FORT 200","Presentation":"Flacon de","Quantité":"50 ml","Qte_par_Carton":100,"Aires":"ATB","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":1,"Chien":1,"AMM":1},{"ID":"TYLOF_1C","Product":"TYLO FORT 200","Presentation":"Flacon de","Quantité":"100 ml","Qte_par_Carton":80,"Aires":"ATB","vache":1,"volaille":0,"lapin":0,"mouton":1,"chevre":1,"cheval":0,"porc":1,"Chameaux":1,"Chien":1,"AMM":1}]
+
+    const tbody = document.querySelector("#product-table tbody");
+
+    const monthAbbr = ["Jan - Mar","Avr - Jun","Jul - Sep", "Oct - Dec"];
+    // sort by Aires alphabetically (e.g. "API", "APE", "ATB", ...)
+    produits.sort((a, b) => a.Aires.localeCompare(b.Aires));
+    produits.forEach((prod, index) => {
+    const row = document.createElement("tr");
+    row.classList.add(`aire-${prod.Aires.toLowerCase()}`);
+
+    row.innerHTML = `
+        <td>
+          <span class="product-name" ${prod.ID ? `data-image="picture/${prod.ID}.png"` : ""}>
+            ${prod.Product} ${prod.Presentation} ${prod.Quantité}
+          </span>
+        </td>
+
+        <td><input type="number" autocomplete="off" name="annual_${index}" class="input" value="0" min="0"></td>
+        <td>
+        <label class="custom-checkbox">
+            <input type="checkbox" id="toggle_${index}">
+            <span class="checkmark"></span>
+        </label>
+        </td>
+        <td>
+          <div id="monthly_${index}" class="monthly-input">
+            ${
+              monthAbbr.map((abbr, m) => `
+                <div class="month-box">
+                  <label for="m_${index}_${m}">${abbr}</label>
+                  <input
+                    type="number"
+                    id="m_${index}_${m}"
+                    name="m_${index}_${m}"
+                    min="0"
+                    value="0"
+                    style="width: 40px"
+                  >
+                </div>
+              `).join('')
+            }
+          </div>
+        </td>
+        <td><i><span id="boxes_${index}">0</span></id></td>
+        <td>
+          <span class="Quantité-par-carton">
+            <i> ${prod.Qte_par_Carton} </i>
+          </span>
+        </td>
+    `;
+    
+    
+    const nameSpan = row.querySelector(".product-name");
+
+    if (prod.AMM === 1) {
+      const ammImg = document.createElement("img");
+      ammImg.src       = "picture/AMM.PNG";
+      ammImg.alt       = "AMM";
+      ammImg.className = "amm-icon";
+      // insert at very start of the span, before any text or animal icons
+      nameSpan.parentNode.insertBefore(ammImg, nameSpan);
+    }
+
+    if (nameSpan) {
+      nameSpan.classList.add(`aire-${prod.Aires.toLowerCase()}`);
+    }
+
+    const animalKeys = [ "vache","volaille","lapin","mouton","chevre",
+                       "cheval","porc","Chameaux","Chien" ];
+    animalKeys.forEach(key => {
+      if (prod[key] === 1) {
+        const img = document.createElement("img");
+        img.src       = `picture/${key}.png`;
+        img.alt       = key;
+        img.className = "animal-icon";
+        nameSpan.appendChild(img);
+      }
+    });
+    tbody.appendChild(row);
+
+    const annualInput = row.querySelector(`[name=annual_${index}]`);
+    const monthlyDiv = row.querySelector(`#monthly_${index}`);
+    const toggle = row.querySelector(`#toggle_${index}`);
+    const boxOutput = row.querySelector(`#boxes_${index}`);
+    const quantityPerCarton = parseInt(prod["Qte_par_Carton"]);
+
+    toggle.addEventListener("change", () => {
+        monthlyDiv.style.display = toggle.checked ? "flex" : "none";
+        calculateBoxes();
+    });
+
+    const updateEvents = [annualInput, ...monthlyDiv.querySelectorAll("input")];
+    updateEvents.forEach(input => {
+        input.addEventListener("input", () => calculateBoxes());
+    });
+
+    function calculateBoxes() {
+        let total = parseInt(annualInput.value) || 0;
+
+        if (toggle.checked) {
+        total = 0;
+        monthlyDiv.querySelectorAll("input").forEach(input => {
+            total += parseInt(input.value) || 0;
+        });
+        annualInput.value = total;
+        }
+
+        const boxes = total / quantityPerCarton;
+        boxOutput.textContent = boxes.toFixed(2);
+
+        if (boxes !== Math.floor(boxes) && total !== 0) {
+        boxOutput.classList.add("incomplete-box");
+        } else {
+        boxOutput.classList.remove("incomplete-box");
+        }
+    }
+    });
+
+
+    const form = document.getElementById("survey-form");
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const productsData = produits.map((prod, i) => {
+      const annualVal = Number(form[`annual_${i}`].value) || 0;
+      const monthlyInputs = Array.from(
+          document.querySelectorAll(`#monthly_${i} input`)
+      );
+      const monthly = monthlyInputs.map(input => Number(input.value) || 0);
+
+      // use the toggle checkbox to decide which total to use
+      const toggle = document.getElementById(`toggle_${i}`);
+      const totalQty = toggle.checked
+          ? monthly.reduce((sum, val) => sum + val, 0)
+          : annualVal;
+
+      const perCarton = Number(prod["Quantité par carton"]);
+      const boxes = perCarton > 0
+          ? Number((totalQty / perCarton).toFixed(2))
+          : 0;
+
+      return {
+          id:      prod.ID,
+          product: prod.Product.trim(),
+          annual:  annualVal,
+          monthly: monthly,
+          boxes:   boxes
+      };
+      });
+      
+          emailjs.send(
+        'service_j5t0gl8',      // ← from your EmailJS dashboard
+        'template_rxtdtfa',     // ← from your EmailJS dashboard
+        {
+          to_email: form.email.value,
+          clientName: form.clientName.value,
+          forecastJSON: JSON.stringify(productsData, null, 2)
+        }
+      )
+      .then(() => {
+
+
+        const payload = new FormData();
+        payload.set("clientName", form.clientName.value);
+        payload.set("clientSurname", form.clientSurname.value);
+        payload.set("society", form.society.value);
+        payload.set("country", form.country.value);
+        payload.set("ville", form.ville.value);
+        payload.set("email", form.email.value);
+        payload.set("whatsapp", form.whatsapp.value);
+        payload.set("products",   JSON.stringify(productsData));
+        payload.set("_next",      "https://aerostaz13.github.io/thank-you/thank_you.html");
+
+        fetch(form.action, {
+            method: "POST",
+            mode:   "cors",
+            headers:{ "Accept": "application/json" },
+            body:    payload
+        })
+        .then(r => {
+            if (r.ok) {
+            window.location.href = "https://aerostaz13.github.io/thank-you/thank_you.html";
+            } else {
+            return r.json().then(j => { throw new Error(j.error); });
+            }
+        })
+        .catch(err => alert("Oups : " + err.message));
+        });
+    });
+
+
+    
+
+
+    document.getElementById("survey-form").addEventListener("reset", function() {
+    produits.forEach((_, i) => {
+        const monthlyDiv = document.getElementById(`monthly_${i}`);
+        const boxSpan    = document.getElementById(`boxes_${i}`);
+        if (monthlyDiv) monthlyDiv.style.display = "none";
+        if (boxSpan)    boxSpan.textContent   = "0.00";
+    });
+    });
+
+    const tooltip = document.getElementById("image-tooltip");
+    const tooltipImg = tooltip.querySelector("img");
+
+    document.querySelectorAll(".product-name").forEach(el => {
+      el.addEventListener("mouseenter", () => {
+        const imgSrc = el.dataset.image;
+        if (!imgSrc) return;
+        tooltipImg.src = imgSrc;
+        tooltip.style.display = "block";
+
+        // position to the right of the product name, and 10px above its top edge
+        const rect = el.getBoundingClientRect();
+        tooltip.style.left = rect.right + window.scrollX + "px";
+        tooltip.style.top  = (rect.top + window.scrollY - 300) + "px";
+      });
+
+      el.addEventListener("mouseleave", () => {
+        tooltip.style.display = "none";
+      });
+    });
+
+
+  </script>
+</body>
+</html>
